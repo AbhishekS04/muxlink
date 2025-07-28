@@ -7,7 +7,7 @@ export function middleware(request: NextRequest) {
     const adminPassword = request.cookies.get("admin-auth")?.value
 
     // Check if password is correct
-    if (adminPassword !== process.env.ADMIN_PASSWORD && adminPassword !== "23044") {
+    if (adminPassword !== process.env.ADMIN_PASSWORD && adminPassword !== "0405") {
       // Redirect to login page
       return NextResponse.redirect(new URL("/admin/login", request.url))
     }
