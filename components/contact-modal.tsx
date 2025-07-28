@@ -20,6 +20,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
   const [message, setMessage] = useState("Hi Abhishek, I came across your profile and wanted to connect!")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [error, setError] = useState("")
 
   const backdropRef = useRef<HTMLDivElement>(null)
   const modalRef = useRef<HTMLDivElement>(null)
@@ -59,26 +60,52 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
     if (!backdropRef.current || !modalRef.current) return
 
     const tl = modalAnimation.exit(modalRef.current, backdropRef.current)
-    tl.then(() => onClose())
+    tl.then(() => {
+      onClose()
+      // Reset form state when closing
+      setError("")
+      setIsSubmitted(false)
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
+    setError("")
 
-    // Simulate email sending
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          senderEmail,
+          message,
+        }),
+      })
 
-    setIsSubmitted(true)
-    setIsSubmitting(false)
+      const data = await response.json()
 
-    // Reset and close after 2 seconds
-    setTimeout(() => {
-      setIsSubmitted(false)
-      setSenderEmail("")
-      setMessage("Hi Abhishek, I came across your profile and wanted to connect!")
-      handleClose()
-    }, 2000)
+      if (data.success) {
+        setIsSubmitted(true)
+        setIsSubmitting(false)
+
+        // Reset and close after 3 seconds
+        setTimeout(() => {
+          setIsSubmitted(false)
+          setSenderEmail("")
+          setMessage("Hi Abhishek, I came across your profile and wanted to connect!")
+          handleClose()
+        }, 3000)
+      } else {
+        throw new Error(data.error || "Failed to send message")
+      }
+    } catch (error) {
+      console.error("Contact form error:", error)
+      setError(error instanceof Error ? error.message : "Failed to send message. Please try again.")
+      setIsSubmitting(false)
+    }
   }
 
   if (!isOpen) return null
@@ -115,6 +142,13 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
 
           {!isSubmitted ? (
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3">
+                  <p className="text-red-200 text-sm">{error}</p>
+                </div>
+              )}
+
               {/* Recipient (non-editable) */}
               <div>
                 <label className="block text-sm font-semibold text-white/80 mb-3">To</label>
@@ -134,7 +168,8 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                   onChange={(e) => setSenderEmail(e.target.value)}
                   placeholder="your.email@example.com"
                   required
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/40 focus:border-white/30"
+                  disabled={isSubmitting}
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/40 focus:border-white/30 disabled:opacity-50"
                 />
               </div>
 
@@ -146,7 +181,8 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                   onChange={(e) => setMessage(e.target.value)}
                   rows={4}
                   required
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/40 focus:border-white/30 resize-none"
+                  disabled={isSubmitting}
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/40 focus:border-white/30 resize-none disabled:opacity-50"
                 />
               </div>
 
@@ -154,10 +190,13 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-white text-black hover:bg-white/90 font-semibold py-3 transition-all duration-300"
+                className="w-full bg-white text-black hover:bg-white/90 font-semibold py-3 transition-all duration-300 disabled:opacity-50"
               >
                 {isSubmitting ? (
-                  <div ref={spinnerRef} className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full" />
+                  <div className="flex items-center gap-2">
+                    <div ref={spinnerRef} className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full" />
+                    Sending...
+                  </div>
                 ) : (
                   <>
                     <Send size={16} className="mr-2" />
@@ -175,7 +214,8 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                 <div className="text-green-400 text-2xl">✓</div>
               </div>
               <h3 className="text-lg font-semibold text-white mb-2">Message Sent!</h3>
-              <p className="text-white/60 text-sm">Thanks for reaching out. I'll get back to you soon.</p>
+              <p className="text-white/60 text-sm">Your message has been delivered to Abhishek.</p>
+              <p className="text-white/40 text-xs mt-2">You'll receive a reply at {senderEmail}</p>
             </div>
           )}
         </div>
