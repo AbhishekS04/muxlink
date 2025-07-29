@@ -64,7 +64,7 @@ export function getSocialColor(url: string): string {
   if (domain.includes("threads.net")) return "#000000"
   if (domain.includes("snapchat.com")) return "#FFFC00"
   if (domain.includes("pinterest.com")) return "#BD081C"
-  if (domain.includes("twitter.com") || domain.includes("x.com")) return "#000000"
+  if (domain.includes("twitter.com") || domain.includes("x.com")) return "#ffffff"
 
   return "#f5f5f5"
 }
