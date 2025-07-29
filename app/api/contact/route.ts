@@ -2,83 +2,120 @@ import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, message } = await request.json()
+    const { senderEmail, message } = await request.json()
 
-    // Validate required fields
-    if (!name || !email || !message) {
-      return NextResponse.json({ error: "All fields are required" }, { status: 400 })
+    // Validate input
+    if (!senderEmail || !message) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Email and message are required",
+        },
+        { status: 400 },
+      )
     }
 
-    // Validate email format
+    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      return NextResponse.json({ error: "Please enter a valid email address" }, { status: 400 })
+    if (!emailRegex.test(senderEmail)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid email format",
+        },
+        { status: 400 },
+      )
     }
 
-    // For now, we'll use Resend if available, otherwise log the email
+    // Get Resend API key from environment
     const RESEND_API_KEY = process.env.RESEND_API_KEY
 
-    if (RESEND_API_KEY) {
-      try {
-        // Import Resend dynamically to avoid errors if not installed
-        const { Resend } = await import("resend")
-        const resend = new Resend(RESEND_API_KEY)
+    if (!RESEND_API_KEY) {
+      console.error("RESEND_API_KEY not found in environment variables")
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Email service not configured",
+        },
+        { status: 500 },
+      )
+    }
 
-        await resend.emails.send({
-          from: "Contact Form <noreply@yourdomain.com>", // Replace with your domain
-          to: ["abhishek@yourdomain.com"], // Replace with Abhishek's email
-          replyTo: email,
-          subject: `New Contact Form Message from ${name}`,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px;">
-                New Contact Form Message
-              </h2>
-              
-              <div style="margin: 20px 0;">
-                <p><strong>From:</strong> ${name}</p>
-                <p><strong>Email:</strong> ${email}</p>
+    try {
+      // Import Resend dynamically
+      const { Resend } = await import("resend")
+      const resend = new Resend(RESEND_API_KEY)
+
+      // Send email using Resend
+      const { data, error } = await resend.emails.send({
+        from: "Contact Form <onboarding@resend.dev>", // Use Resend's default sender
+        to: ["abhishek23main@gmail.com"],
+        replyTo: senderEmail,
+        subject: `New Contact Form Message from ${senderEmail}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px 10px 0 0;">
+              <h2 style="color: white; margin: 0; text-align: center;">New Contact Form Message</h2>
+            </div>
+            
+            <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px;">
+              <div style="margin-bottom: 20px;">
+                <h3 style="color: #333; margin-bottom: 10px;">Contact Details:</h3>
+                <p style="margin: 5px 0;"><strong>From:</strong> ${senderEmail}</p>
+                <p style="margin: 5px 0;"><strong>Sent:</strong> ${new Date().toLocaleString()}</p>
               </div>
               
               <div style="margin: 20px 0;">
-                <h3 style="color: #555;">Message:</h3>
-                <div style="background: #f9f9f9; padding: 15px; border-radius: 5px; white-space: pre-wrap;">
+                <h3 style="color: #333; margin-bottom: 10px;">Message:</h3>
+                <div style="background: white; padding: 20px; border-radius: 8px; border-left: 4px solid #667eea; white-space: pre-wrap; line-height: 1.6;">
                   ${message}
                 </div>
               </div>
               
-              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 12px;">
-                <p>This message was sent from your Linktree contact form.</p>
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #e9ecef; text-align: center;">
+                <p style="color: #6c757d; font-size: 14px; margin: 5px 0;">This message was sent from your Linktree contact form.</p>
+                <p style="color: #6c757d; font-size: 14px; margin: 5px 0;">Reply directly to this email to respond to the sender.</p>
               </div>
             </div>
-          `,
-        })
+          </div>
+        `,
+      })
 
-        return NextResponse.json({
-          success: true,
-          message: "Message sent successfully!",
-        })
-      } catch (resendError) {
-        console.error("Resend error:", resendError)
-        // Fall back to logging if Resend fails
+      if (error) {
+        console.error("Resend API error:", error)
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Failed to send email. Please try again.",
+          },
+          { status: 500 },
+        )
       }
+
+      console.log("✅ Email sent successfully via Resend:", data)
+
+      return NextResponse.json({
+        success: true,
+        message: "Message sent successfully!",
+      })
+    } catch (resendError) {
+      console.error("Resend integration error:", resendError)
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Email service error. Please try again.",
+        },
+        { status: 500 },
+      )
     }
-
-    // Fallback: Log the email details (for development/testing)
-    console.log("📧 New Contact Form Submission:")
-    console.log("From:", name, `<${email}>`)
-    console.log("Message:", message)
-    console.log("Timestamp:", new Date().toISOString())
-
-    // Simulate email sending delay
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    return NextResponse.json({
-      success: true,
-      message: "Message sent successfully! (Currently in development mode - check server logs)",
-    })
   } catch (error) {
     console.error("Contact form error:", error)
-    return NextResponse.json({ error: "Failed to send message. Please try again." }, { status: 500 })
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to send message. Please try again.",
+      },
+      { status: 500 },
+    )
   }
 }

@@ -1,32 +1,33 @@
 import {
-  Github,
-  Instagram,
-  Facebook,
-  Linkedin,
-  Youtube,
-  MessageCircle,
-  Send,
-  MessageSquare,
-  Camera,
-  MapPin,
-  ExternalLink,
-} from "lucide-react"
+  FaGithub,
+  FaInstagram,
+  FaFacebook,
+  FaLinkedin,
+  FaYoutube,
+  FaWhatsapp,
+  FaTelegramPlane,
+  FaDiscord,
+  FaSnapchatGhost,
+  FaPinterest,
+  FaTwitter,
+  FaGlobe,
+} from "react-icons/fa"
 
 export const socialIcons = {
-  github: Github,
-  instagram: Instagram,
-  facebook: Facebook,
-  linkedin: Linkedin,
-  youtube: Youtube,
-  whatsapp: MessageCircle,
-  telegram: Send,
-  discord: MessageSquare,
-  threads: MessageSquare,
-  snapchat: Camera,
-  pinterest: MapPin,
-  twitter: ExternalLink, // Using ExternalLink for X/Twitter
-  x: ExternalLink,
-  default: ExternalLink,
+  github: FaGithub,
+  instagram: FaInstagram,
+  facebook: FaFacebook,
+  linkedin: FaLinkedin,
+  youtube: FaYoutube,
+  whatsapp: FaWhatsapp,
+  telegram: FaTelegramPlane,
+  discord: FaDiscord,
+  threads: FaGlobe, // fallback icon, as Threads icon doesn't exist
+  snapchat: FaSnapchatGhost,
+  pinterest: FaPinterest,
+  twitter: FaTwitter, // fallback for X as FaXTwitter not available
+  x: FaTwitter,
+  default: FaGlobe,
 }
 
 export function getSocialIcon(url: string) {
