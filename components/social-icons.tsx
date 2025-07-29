@@ -68,7 +68,7 @@ export function SocialIcons({ links }: SocialIconsProps) {
         return (
           <a
             key={link.id}
-            ref={(el) => (iconsRef.current[index] = el)}
+            ref={(el) => { iconsRef.current[index] = el; }}
             href={link.url}
             target="_blank"
             rel="noopener noreferrer"
