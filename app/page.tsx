@@ -4,6 +4,9 @@ import { ProfileSection } from "@/components/profile-section"
 import { ButtonsSection } from "@/components/buttons-section"
 import { SocialIcons } from "@/components/social-icons"
 
+// Revalidate this page every 60 seconds (ISR - Incremental Static Regeneration)
+export const revalidate = 60
+
 async function getUserData(): Promise<{
   user: User | null
   buttons: Button[]

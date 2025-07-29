@@ -52,7 +52,11 @@ export function AdminPanel({ initialUser, initialButtons, initialLinks }: AdminP
         await linksEditorRef.current.handleSave()
       }
       
-      alert("All changes saved successfully!")
+//       // After saving changes
+//       mutateUser();
+// // Skip mutating buttons since the state is already updated
+//       mutateLinks();
+      alert("All changes saved successfully! The main page will update within a minute.")
     } catch (error) {
       console.error("Error saving data:", error)
       alert("Failed to save some changes. Please try again.")
@@ -65,7 +69,7 @@ export function AdminPanel({ initialUser, initialButtons, initialLinks }: AdminP
   const handleRefresh = async () => {
     setRefreshing(true)
     try {
-      const res = await fetch("/api/admin/data")
+      const res = await fetch("/api/admin/data", { cache: 'no-store' })
       if (res.ok) {
         const { user, buttons, links } = await res.json()
         setUser(user)

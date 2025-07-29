@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 import { sql } from "@/lib/db"
 
 export async function PUT(request: NextRequest) {
@@ -45,6 +46,8 @@ export async function PUT(request: NextRequest) {
       }
 
       await sql`COMMIT`;
+      // Revalidate the main page to show updated data
+      revalidatePath("/")
       return NextResponse.json(result[0]);
     } catch (dbError: any) {
       await sql`ROLLBACK`;
@@ -75,6 +78,8 @@ export async function PUT(request: NextRequest) {
           `;
         }
         await sql`COMMIT`;
+        // Revalidate the main page to show updated data
+        revalidatePath("/")
         return NextResponse.json(result[0]);
       } else {
         throw dbError;

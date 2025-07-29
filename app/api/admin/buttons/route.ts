@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 import { sql } from "@/lib/db"
 
 export async function PUT(request: NextRequest) {
@@ -20,6 +21,8 @@ export async function PUT(request: NextRequest) {
     const results = await Promise.all(insertPromises)
     const newButtons = results.map((result) => result[0])
 
+    // Revalidate the main page to show updated data
+    revalidatePath("/")
     return NextResponse.json(newButtons)
   } catch (error) {
     console.error("Error updating buttons:", error)
