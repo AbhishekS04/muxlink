@@ -2,184 +2,192 @@
 
 import type React from "react"
 
-import { useState, useEffect, useRef } from "react"
-import { gsap } from "gsap"
-import { X, Send, Mail } from "lucide-react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { modalAnimation, loadingSpinner, successCheckmark } from "@/lib/gsap-animations"
+import { Mail, Send, CheckCircle, AlertCircle } from "lucide-react"
 
-interface ContactModalProps {
-  isOpen: boolean
-  onClose: () => void
-}
+export function ContactModal() {
+  const [isOpen, setIsOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [status, setStatus] = useState<{
+    type: "success" | "error" | null
+    message: string
+  }>({ type: null, message: "" })
 
-export function ContactModal({ isOpen, onClose }: ContactModalProps) {
-  const [senderEmail, setSenderEmail] = useState("")
-  const [message, setMessage] = useState("Hi Abhishek, I came across your profile and wanted to connect!")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSubmitted, setIsSubmitted] = useState(false)
-
-  const backdropRef = useRef<HTMLDivElement>(null)
-  const modalRef = useRef<HTMLDivElement>(null)
-  const spinnerRef = useRef<HTMLDivElement>(null)
-  const checkmarkRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!backdropRef.current || !modalRef.current) return
-
-    if (isOpen) {
-      // Enter animation
-      modalAnimation.enter(modalRef.current, backdropRef.current)
-
-      // Form fields stagger animation
-      const formFields = modalRef.current.querySelectorAll("input, textarea, button")
-      gsap.fromTo(
-        formFields,
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.4, stagger: 0.1, delay: 0.3, ease: "power2.out" },
-      )
-    }
-  }, [isOpen])
-
-  useEffect(() => {
-    if (isSubmitting && spinnerRef.current) {
-      loadingSpinner(spinnerRef.current)
-    }
-  }, [isSubmitting])
-
-  useEffect(() => {
-    if (isSubmitted && checkmarkRef.current) {
-      successCheckmark(checkmarkRef.current)
-    }
-  }, [isSubmitted])
-
-  const handleClose = () => {
-    if (!backdropRef.current || !modalRef.current) return
-
-    const tl = modalAnimation.exit(modalRef.current, backdropRef.current)
-    tl.then(() => onClose())
-  }
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    message: "",
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsSubmitting(true)
+    setIsLoading(true)
+    setStatus({ type: null, message: "" })
 
-    // Simulate email sending
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      })
 
-    setIsSubmitted(true)
-    setIsSubmitting(false)
+      const data = await response.json()
 
-    // Reset and close after 2 seconds
-    setTimeout(() => {
-      setIsSubmitted(false)
-      setSenderEmail("")
-      setMessage("Hi Abhishek, I came across your profile and wanted to connect!")
-      handleClose()
-    }, 2000)
+      if (response.ok) {
+        setStatus({
+          type: "success",
+          message: data.message || "Message sent successfully!",
+        })
+        setFormData({ name: "", email: "", message: "" })
+
+        // Close modal after 2 seconds
+        setTimeout(() => {
+          setIsOpen(false)
+          setStatus({ type: null, message: "" })
+        }, 2000)
+      } else {
+        setStatus({
+          type: "error",
+          message: data.error || "Failed to send message",
+        })
+      }
+    } catch (error) {
+      setStatus({
+        type: "error",
+        message: "Network error. Please try again.",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  if (!isOpen) return null
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
 
   return (
-    <>
-      {/* Backdrop */}
-      <div ref={backdropRef} className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50" onClick={handleClose} />
-
-      {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div
-          ref={modalRef}
-          className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 xs:p-8 w-full max-w-md mx-auto shadow-2xl"
-          onClick={(e) => e.stopPropagation()}
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button
+          variant="outline"
+          className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30 transition-all duration-300 backdrop-blur-sm"
         >
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
-                <Mail size={20} className="text-white" />
-              </div>
-              <h2 className="text-xl font-semibold text-white">Contact Me</h2>
-            </div>
-            <Button
-              onClick={handleClose}
-              variant="ghost"
-              size="sm"
-              className="text-white/60 hover:text-white hover:bg-white/10 p-2"
-            >
-              <X size={18} />
-            </Button>
+          <Mail className="w-4 h-4 mr-2" />
+          Contact Me
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px] bg-gray-900 border-gray-700 text-white">
+        <DialogHeader>
+          <DialogTitle className="text-white">Send me a message</DialogTitle>
+          <DialogDescription className="text-gray-300">I'll get back to you as soon as possible.</DialogDescription>
+        </DialogHeader>
+
+        {status.type && (
+          <div
+            className={`flex items-center gap-2 p-3 rounded-md ${
+              status.type === "success"
+                ? "bg-green-900/50 text-green-300 border border-green-700"
+                : "bg-red-900/50 text-red-300 border border-red-700"
+            }`}
+          >
+            {status.type === "success" ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+            <span className="text-sm">{status.message}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name" className="text-white">
+              Name
+            </Label>
+            <Input
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              placeholder="Your name"
+              required
+              disabled={isLoading}
+              className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-400 focus:border-white/50"
+            />
           </div>
 
-          {!isSubmitted ? (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Recipient (non-editable) */}
-              <div>
-                <label className="block text-sm font-semibold text-white/80 mb-3">To</label>
-                <Input
-                  value="abhishek23main@gmail.com"
-                  disabled
-                  className="bg-white/5 border-white/10 text-white/60 cursor-not-allowed"
-                />
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-white">
+              Email
+            </Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              placeholder="your.email@example.com"
+              required
+              disabled={isLoading}
+              className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-400 focus:border-white/50"
+            />
+          </div>
 
-              {/* Sender Email */}
-              <div>
-                <label className="block text-sm font-semibold text-white/80 mb-3">Your Email</label>
-                <Input
-                  type="email"
-                  value={senderEmail}
-                  onChange={(e) => setSenderEmail(e.target.value)}
-                  placeholder="your.email@example.com"
-                  required
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/40 focus:border-white/30"
-                />
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="message" className="text-white">
+              Message
+            </Label>
+            <Textarea
+              id="message"
+              name="message"
+              value={formData.message}
+              onChange={handleInputChange}
+              placeholder="Your message..."
+              required
+              disabled={isLoading}
+              rows={4}
+              className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-400 focus:border-white/50 resize-none"
+            />
+          </div>
 
-              {/* Message */}
-              <div>
-                <label className="block text-sm font-semibold text-white/80 mb-3">Message</label>
-                <Textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  rows={4}
-                  required
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/40 focus:border-white/30 resize-none"
-                />
-              </div>
-
-              {/* Submit Button */}
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-white text-black hover:bg-white/90 font-semibold py-3 transition-all duration-300"
-              >
-                {isSubmitting ? (
-                  <div ref={spinnerRef} className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full" />
-                ) : (
-                  <>
-                    <Send size={16} className="mr-2" />
-                    Send Message
-                  </>
-                )}
-              </Button>
-            </form>
-          ) : (
-            <div className="text-center py-8">
-              <div
-                ref={checkmarkRef}
-                className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4"
-              >
-                <div className="text-green-400 text-2xl">✓</div>
-              </div>
-              <h3 className="text-lg font-semibold text-white mb-2">Message Sent!</h3>
-              <p className="text-white/60 text-sm">Thanks for reaching out. I'll get back to you soon.</p>
-            </div>
-          )}
-        </div>
-      </div>
-    </>
+          <Button
+            type="submit"
+            disabled={isLoading || status.type === "success"}
+            className="w-full bg-white text-black hover:bg-gray-200 disabled:opacity-50"
+          >
+            {isLoading ? (
+              <>
+                <div className="w-4 h-4 mr-2 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                Sending...
+              </>
+            ) : status.type === "success" ? (
+              <>
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Sent!
+              </>
+            ) : (
+              <>
+                <Send className="w-4 h-4 mr-2" />
+                Send Message
+              </>
+            )}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }
