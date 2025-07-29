@@ -15,7 +15,7 @@ export function ProfileSection({ user }: ProfileSectionProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const imageRef = useRef<HTMLDivElement>(null)
   const nameRef = useRef<HTMLHeadingElement>(null)
-  const bioRef = useRef<HTMLDivElement>(null)
+  const bioRef = useRef<HTMLParagraphElement>(null)
   const glowRef = useRef<HTMLDivElement>(null)
   const [glowColor, setGlowColor] = useState("#ffffff")
 
@@ -181,25 +181,19 @@ export function ProfileSection({ user }: ProfileSectionProps) {
 
       <h1
         ref={nameRef}
-        className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-semibold text-white mb-6 xs:mb-8 tracking-tight whitespace-nowrap emoji-font"
+        className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-semibold text-white mb-4 xs:mb-6 tracking-tight whitespace-nowrap"
         style={{ whiteSpace: "nowrap" }}
       >
         {user.name}
       </h1>
 
       {user.bio && (
-        <div
+        <p
           ref={bioRef}
-          className="text-white/85 font-medium mx-auto px-4 xs:px-6 emoji-font"
-          style={{
-            maxWidth: "min(90vw, 600px)",
-            fontSize: "clamp(0.875rem, 2.5vw, 1.125rem)",
-            lineHeight: "clamp(1.3, 1.4, 1.5)",
-            letterSpacing: "0.01em",
-          }}
+          className="text-white/70 text-base xs:text-lg sm:text-xl font-medium leading-relaxed max-w-md mx-auto px-4"
         >
-          <p className="text-balance leading-tight break-words hyphens-auto text-center">{user.bio}</p>
-        </div>
+          {user.bio}
+        </p>
       )}
     </div>
   )
