@@ -1,28 +1,50 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { sql } from "@/lib/db"
+import { sql, testConnection } from "@/lib/db"
 
-export async function PUT(request: NextRequest) {
+export async function GET() {
   try {
-    const buttons = await request.json()
+    console.log("🔘 GET /api/admin/buttons - Fetching buttons")
+    await testConnection()
 
-    // Delete all existing buttons
-    await sql`DELETE FROM buttons WHERE user_id = 1`
+    const result = await sql`
+      SELECT id, title, url, icon, is_active, sort_order
+      FROM buttons 
+      ORDER BY sort_order ASC
+    `
+
+    console.log("✅ Buttons fetched successfully:", result.length, "buttons")
+    return NextResponse.json(result)
+  } catch (error) {
+    console.error("❌ Error fetching buttons:", error)
+    return NextResponse.json({ error: "Failed to fetch buttons" }, { status: 500 })
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    console.log("🔘 POST /api/admin/buttons - Updating buttons")
+    const { buttons } = await request.json()
+    console.log("📝 Buttons update data:", buttons.length, "buttons")
+
+    await testConnection()
+
+    // Clear existing buttons
+    await sql`DELETE FROM buttons`
+    console.log("🗑️ Existing buttons cleared")
 
     // Insert new buttons
-    const insertPromises = buttons.map((button: any, index: number) => {
-      return sql`
-        INSERT INTO buttons (user_id, label, url, order_index)
-        VALUES (1, ${button.label}, ${button.url}, ${index})
-        RETURNING *
+    for (let i = 0; i < buttons.length; i++) {
+      const button = buttons[i]
+      await sql`
+        INSERT INTO buttons (title, url, icon, is_active, sort_order)
+        VALUES (${button.title}, ${button.url}, ${button.icon}, ${button.is_active}, ${i + 1})
       `
-    })
+    }
 
-    const results = await Promise.all(insertPromises)
-    const newButtons = results.map((result) => result[0])
-
-    return NextResponse.json(newButtons)
+    console.log("✅ Buttons updated successfully:", buttons.length, "buttons saved")
+    return NextResponse.json({ success: true, count: buttons.length })
   } catch (error) {
-    console.error("Error updating buttons:", error)
+    console.error("❌ Error updating buttons:", error)
     return NextResponse.json({ error: "Failed to update buttons" }, { status: 500 })
   }
 }

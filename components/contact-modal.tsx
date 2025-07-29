@@ -80,7 +80,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          senderEmail,
+          email: senderEmail,
           message,
         }),
       })

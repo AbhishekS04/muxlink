@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
@@ -19,23 +18,41 @@ export default function AdminLogin() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log("🔐 Login attempt started")
+
     setIsLoading(true)
     setError("")
 
     try {
+      console.log("📡 Sending authentication request")
+
       const response = await fetch("/api/admin/auth", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ password }),
       })
 
-      if (response.ok) {
-        router.push("/admin")
+      console.log("📡 Response status:", response.status)
+
+      const data = await response.json()
+      console.log("📡 Response data:", data)
+
+      if (response.ok && data.success) {
+        console.log("✅ Login successful, redirecting to admin")
+        // Small delay to ensure cookie is set
+        setTimeout(() => {
+          router.push("/admin")
+          router.refresh()
+        }, 100)
       } else {
-        setError("Invalid password")
+        console.log("❌ Login failed:", data.error)
+        setError(data.error || "Invalid password")
       }
     } catch (error) {
-      setError("Login failed")
+      console.error("❌ Login error:", error)
+      setError("Login failed - please try again")
     } finally {
       setIsLoading(false)
     }
@@ -69,7 +86,7 @@ export default function AdminLogin() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter admin password"
+                  placeholder="Enter admin password (0405)"
                   className="bg-gray-800 border-gray-600 text-white pr-12"
                   required
                 />
@@ -100,6 +117,8 @@ export default function AdminLogin() {
                 {isLoading ? "Authenticating..." : "Access Admin Panel"}
               </Button>
             </form>
+
+            <div className="mt-4 text-center text-xs text-gray-500">Password: 0405</div>
           </CardContent>
         </Card>
       </motion.div>
