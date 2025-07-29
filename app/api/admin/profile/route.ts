@@ -11,11 +11,16 @@ export async function PUT(request: NextRequest) {
       background_type,
       background_image_url,
       background_overlay_opacity,
-    } = await request.json()
+    } = await request.json();
 
-    // Try to update with all fields first
+    if (!name) {
+      return NextResponse.json({ error: "Name is required." }, { status: 400 });
+    }
+
+    await sql`BEGIN`;
     try {
-      const result = await sql`
+      // Try update with all fields
+      let result = await sql`
         UPDATE users 
         SET 
           name = ${name}, 
@@ -28,28 +33,29 @@ export async function PUT(request: NextRequest) {
           updated_at = CURRENT_TIMESTAMP
         WHERE id = 1
         RETURNING *
-      `
+      `;
 
       if (result.length === 0) {
         // Create user if doesn't exist
-        const createResult = await sql`
+        result = await sql`
           INSERT INTO users (id, name, bio, profile_image_url, background_color, background_type, background_image_url, background_overlay_opacity)
           VALUES (1, ${name}, ${bio}, ${profile_image_url}, ${background_color || "#000000"}, ${background_type || "solid"}, ${background_image_url || null}, ${background_overlay_opacity || 0.5})
           RETURNING *
-        `
-        return NextResponse.json(createResult[0])
+        `;
       }
 
-      return NextResponse.json(result[0])
+      await sql`COMMIT`;
+      return NextResponse.json(result[0]);
     } catch (dbError: any) {
-      // If image columns don't exist, fall back to basic update
+      await sql`ROLLBACK`;
+      // If image columns don't exist, fall back to basic update/insert
       if (
         dbError.message?.includes("background_image_url") ||
         dbError.message?.includes("background_overlay_opacity")
       ) {
-        console.log("Image background columns not found, using fallback...")
-
-        const result = await sql`
+        console.log("Image background columns not found, using fallback...");
+        await sql`BEGIN`;
+        let result = await sql`
           UPDATE users 
           SET 
             name = ${name}, 
@@ -60,24 +66,22 @@ export async function PUT(request: NextRequest) {
             updated_at = CURRENT_TIMESTAMP
           WHERE id = 1
           RETURNING *
-        `
-
+        `;
         if (result.length === 0) {
-          const createResult = await sql`
+          result = await sql`
             INSERT INTO users (id, name, bio, profile_image_url, background_color, background_type)
             VALUES (1, ${name}, ${bio}, ${profile_image_url}, ${background_color || "#000000"}, ${background_type || "solid"})
             RETURNING *
-          `
-          return NextResponse.json(createResult[0])
+          `;
         }
-
-        return NextResponse.json(result[0])
+        await sql`COMMIT`;
+        return NextResponse.json(result[0]);
       } else {
-        throw dbError
+        throw dbError;
       }
     }
   } catch (error) {
-    console.error("Error updating profile:", error)
-    return NextResponse.json({ error: "Failed to update profile" }, { status: 500 })
+    console.error("Error updating profile:", error);
+    return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });
   }
 }
