@@ -15,7 +15,7 @@ interface ButtonsSectionProps {
 export function ButtonsSection({ buttons }: ButtonsSectionProps) {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
-  const buttonsRef = useRef<(HTMLAnchorElement | null)[]>([])
+  const buttonsRef = useRef<(HTMLElement | null)[]>([])
 
   useEffect(() => {
     if (!containerRef.current || buttons.length === 0) return
@@ -42,34 +42,57 @@ export function ButtonsSection({ buttons }: ButtonsSectionProps) {
     return () => ctx.revert()
   }, [buttons])
 
-  const handleButtonClick = (button: Button, e: React.MouseEvent) => {
-    if (button.label.toLowerCase().includes("contact")) {
-      e.preventDefault()
-      setIsContactModalOpen(true)
-    }
-  }
+  // Remove the handleButtonClick function entirely as it's no longer needed
+  // const handleButtonClick = (button: Button, e: React.MouseEvent) => {
+  //   if (button.label.toLowerCase().includes("contact")) {
+  //     e.preventDefault()
+  //     setIsContactModalOpen(true)
+  //   }
+  // }
 
   return (
     <>
       <div ref={containerRef} className="mb-12 xs:mb-16 sm:mb-20 space-y-4 xs:space-y-5">
-        {buttons.map((button, index) => (
-          <a
-            key={button.id}
-            ref={(el) => { buttonsRef.current[index] = el; }}
-            href={button.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group block w-full relative overflow-hidden cursor-pointer"
-            onClick={(e) => handleButtonClick(button, e)}
-          >
-            {/* Subtle glow effect */}
-            <div className="button-glow absolute inset-0 bg-gradient-to-r from-white/0 via-white/8 to-white/0 rounded-2xl opacity-0" />
+        {buttons.map((button, index) => {
+          const isContactButton = button.label.toLowerCase().includes("contact") || button.url.startsWith("mailto:");
 
-            <div className="relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl py-4 xs:py-5 sm:py-5 px-6 xs:px-8 text-center font-medium text-white transition-all duration-300 group-hover:border-white/20">
-              <span className="text-base xs:text-lg sm:text-xl font-semibold tracking-wide">{button.label}</span>
-            </div>
-          </a>
-        ))}
+          if (isContactButton) {
+            return (
+              <button
+                type="button"
+                key={button.id}
+                ref={(el) => { buttonsRef.current[index] = el; }}
+                className="group block w-full relative overflow-hidden cursor-pointer"
+                onClick={() => setIsContactModalOpen(true)}
+              >
+                {/* Subtle glow effect */}
+                <div className="button-glow absolute inset-0 bg-gradient-to-r from-white/0 via-white/8 to-white/0 rounded-2xl opacity-0" />
+
+                <div className="relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl py-4 xs:py-5 sm:py-5 px-6 xs:px-8 text-center font-medium text-white transition-all duration-300 group-hover:border-white/20">
+                  <span className="text-base xs:text-lg sm:text-xl font-semibold tracking-wide">{button.label}</span>
+                </div>
+              </button>
+            );
+          } else {
+            return (
+              <a
+                key={button.id}
+                ref={(el) => { buttonsRef.current[index] = el; }}
+                href={button.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block w-full relative overflow-hidden cursor-pointer"
+              >
+                {/* Subtle glow effect */}
+                <div className="button-glow absolute inset-0 bg-gradient-to-r from-white/0 via-white/8 to-white/0 rounded-2xl opacity-0" />
+
+                <div className="relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl py-4 xs:py-5 sm:py-5 px-6 xs:px-8 text-center font-medium text-white transition-all duration-300 group-hover:border-white/20">
+                  <span className="text-base xs:text-lg sm:text-xl font-semibold tracking-wide">{button.label}</span>
+                </div>
+              </a>
+            );
+          }
+        })}
       </div>
 
       <ContactModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} />
