@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, forwardRef, useImperativeHandle } from "react"
 import { motion, Reorder } from "framer-motion"
 import { Plus, Save, Trash2, GripVertical } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -13,9 +13,37 @@ interface ButtonsEditorProps {
   onUpdate: (buttons: ButtonType[]) => void
 }
 
-export function ButtonsEditor({ buttons, onUpdate }: ButtonsEditorProps) {
+export const ButtonsEditor = forwardRef<{ saveToDB: (buttons: ButtonType[]) => Promise<void> }, ButtonsEditorProps>(({ buttons, onUpdate }, ref) => {
   const [localButtons, setLocalButtons] = useState(buttons)
   const [isLoading, setIsLoading] = useState(false)
+
+  // saveToDB method will be exposed to parent component via useImperativeHandle below
+
+  // Auto-save to DB on every change
+  const saveToDB = async (updatedButtons: ButtonType[]) => {
+    setIsLoading(true)
+    try {
+      const response = await fetch("/api/admin/buttons", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedButtons),
+      })
+      if (response.ok) {
+        const newButtons = await response.json()
+        onUpdate(newButtons)
+        setLocalButtons(newButtons)
+      }
+    } catch (error) {
+      console.error("Error auto-saving buttons:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Expose the saveToDB method to the parent component
+  useImperativeHandle(ref, () => ({
+    saveToDB
+  }))
 
   const addButton = () => {
     const newButton: ButtonType = {
@@ -27,36 +55,27 @@ export function ButtonsEditor({ buttons, onUpdate }: ButtonsEditorProps) {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }
-    setLocalButtons([...localButtons, newButton])
+    const updated = [...localButtons, newButton]
+    setLocalButtons(updated)
+    saveToDB(updated)
   }
 
   const updateButton = (id: number, field: keyof ButtonType, value: string) => {
-    setLocalButtons(localButtons.map((button) => (button.id === id ? { ...button, [field]: value } : button)))
+    const updated = localButtons.map((button) => (button.id === id ? { ...button, [field]: value } : button))
+    setLocalButtons(updated)
+    saveToDB(updated)
   }
 
   const deleteButton = (id: number) => {
-    setLocalButtons(localButtons.filter((button) => button.id !== id))
+    const updated = localButtons.filter((button) => button.id !== id)
+    setLocalButtons(updated)
+    saveToDB(updated)
   }
 
-  const handleSave = async () => {
-    setIsLoading(true)
-    try {
-      const response = await fetch("/api/admin/buttons", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(localButtons),
-      })
-
-      if (response.ok) {
-        const updatedButtons = await response.json()
-        onUpdate(updatedButtons)
-        setLocalButtons(updatedButtons)
-      }
-    } catch (error) {
-      console.error("Error updating buttons:", error)
-    } finally {
-      setIsLoading(false)
-    }
+  // Auto-save on reorder
+  const handleReorder = (newOrder: ButtonType[]) => {
+    setLocalButtons(newOrder)
+    saveToDB(newOrder)
   }
 
   return (
@@ -74,6 +93,7 @@ export function ButtonsEditor({ buttons, onUpdate }: ButtonsEditorProps) {
               size="sm"
               variant="outline"
               className="border-border hover:bg-accent bg-transparent"
+              disabled={isLoading}
             >
               <Plus size={16} className="mr-1" />
               Add
@@ -81,7 +101,7 @@ export function ButtonsEditor({ buttons, onUpdate }: ButtonsEditorProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Reorder.Group axis="y" values={localButtons} onReorder={setLocalButtons} className="space-y-3">
+          <Reorder.Group axis="y" values={localButtons} onReorder={handleReorder} className="space-y-3">
             {localButtons.map((button) => (
               <Reorder.Item key={button.id} value={button} className="bg-card border border-border rounded-lg p-4">
                 <div className="flex items-center gap-3">
@@ -93,12 +113,14 @@ export function ButtonsEditor({ buttons, onUpdate }: ButtonsEditorProps) {
                       onChange={(e) => updateButton(button.id, "label", e.target.value)}
                       placeholder="Button label"
                       className="bg-input border-border text-foreground"
+                      disabled={isLoading}
                     />
                     <Input
                       value={button.url}
                       onChange={(e) => updateButton(button.id, "url", e.target.value)}
                       placeholder="https://example.com"
                       className="bg-input border-border text-foreground"
+                      disabled={isLoading}
                     />
                   </div>
 
@@ -106,27 +128,18 @@ export function ButtonsEditor({ buttons, onUpdate }: ButtonsEditorProps) {
                     onClick={() => deleteButton(button.id)}
                     size="sm"
                     variant="outline"
-                    className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
+                    className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white flex items-center justify-center"
+                    disabled={isLoading}
+                    aria-label="Delete button"
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={16} className="text-red-600 group-hover:text-white transition-colors" />
                   </Button>
                 </div>
               </Reorder.Item>
             ))}
           </Reorder.Group>
-
-          {localButtons.length > 0 && (
-            <Button
-              onClick={handleSave}
-              disabled={isLoading}
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              <Save size={16} className="mr-2" />
-              {isLoading ? "Saving..." : "Save Buttons"}
-            </Button>
-          )}
         </CardContent>
       </Card>
     </motion.div>
   )
-}
+});

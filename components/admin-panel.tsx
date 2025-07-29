@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { motion } from "framer-motion"
-import { LogOut, Settings } from "lucide-react"
+import { LogOut, Settings, Save } from "lucide-react"
 import type { User, Link, Button } from "@/lib/db"
 import { ProfileEditor } from "@/components/admin/profile-editor"
 import { ButtonsEditor } from "@/components/admin/buttons-editor"
@@ -21,10 +21,44 @@ export function AdminPanel({ initialUser, initialButtons, initialLinks }: AdminP
   const [buttons, setButtons] = useState(initialButtons)
   const [links, setLinks] = useState(initialLinks)
   const [refreshing, setRefreshing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  
+  // References to the editor components
+  const profileEditorRef = useRef<{ handleSave: () => Promise<void> }>(null)
+  const buttonsEditorRef = useRef<{ saveToDB: (buttons: Button[]) => Promise<void> }>(null)
+  const linksEditorRef = useRef<{ handleSave: () => Promise<void> }>(null)
 
   const handleLogout = async () => {
     await fetch("/api/admin/logout", { method: "POST" })
     window.location.href = "/admin/login"
+  }
+
+  // Save all changes to the DB
+  const handleSaveAll = async () => {
+    setSaving(true)
+    try {
+      // Save profile data
+      if (profileEditorRef.current) {
+        await profileEditorRef.current.handleSave()
+      }
+      
+      // Save buttons data
+      if (buttonsEditorRef.current) {
+        await buttonsEditorRef.current.saveToDB(buttons)
+      }
+      
+      // Save links data
+      if (linksEditorRef.current) {
+        await linksEditorRef.current.handleSave()
+      }
+      
+      alert("All changes saved successfully!")
+    } catch (error) {
+      console.error("Error saving data:", error)
+      alert("Failed to save some changes. Please try again.")
+    } finally {
+      setSaving(false)
+    }
   }
 
   // Fetch latest data from the DB
@@ -65,6 +99,16 @@ export function AdminPanel({ initialUser, initialButtons, initialLinks }: AdminP
             </div>
             <div className="flex gap-2">
               <UIButton
+                onClick={handleSaveAll}
+                variant="outline"
+                size="sm"
+                className="border-white/20 hover:bg-white/10 bg-transparent text-white/80 hover:text-white font-semibold"
+                disabled={saving}
+              >
+                <Save size={16} className="mr-2" />
+                {saving ? "Saving..." : "Save All Changes"}
+              </UIButton>
+              <UIButton
                 onClick={handleRefresh}
                 variant="outline"
                 size="sm"
@@ -86,9 +130,21 @@ export function AdminPanel({ initialUser, initialButtons, initialLinks }: AdminP
           </div>
 
           <div className="space-y-8 xs:space-y-12">
-            <ProfileEditor user={user} onUpdate={setUser} />
-            <ButtonsEditor buttons={buttons} onUpdate={setButtons} />
-            <LinksEditor links={links} onUpdate={setLinks} />
+            <ProfileEditor 
+              ref={profileEditorRef}
+              user={user} 
+              onUpdate={setUser} 
+            />
+            <ButtonsEditor 
+              ref={buttonsEditorRef}
+              buttons={buttons} 
+              onUpdate={setButtons} 
+            />
+            <LinksEditor 
+              ref={linksEditorRef}
+              links={links} 
+              onUpdate={setLinks} 
+            />
           </div>
         </motion.div>
       </div>

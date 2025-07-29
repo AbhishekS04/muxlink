@@ -50,7 +50,7 @@
     "gsap": "latest",
     "input-otp": "latest",
     "lucide-react": "^0.454.0",
-    "next": "14.2.16",
+    "next": "14.2.17",
     "next-themes": "latest",
     "react": "^18",
     "react-day-picker": "latest",
@@ -67,11 +67,11 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@types/node": "^22",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "postcss": "^8.5",
+    "@types/node": "^22.3.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "postcss": "^8.5.0",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5"
+    "typescript": "^5.4.5"
   }
 }

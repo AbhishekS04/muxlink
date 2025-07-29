@@ -12,6 +12,7 @@ import {
   FaTwitter,
   FaGlobe,
 } from "react-icons/fa"
+import { FaXTwitter } from "react-icons/fa6"
 
 export const socialIcons = {
   github: FaGithub,
@@ -25,8 +26,8 @@ export const socialIcons = {
   threads: FaGlobe, // fallback icon, as Threads icon doesn't exist
   snapchat: FaSnapchatGhost,
   pinterest: FaPinterest,
-  twitter: FaTwitter, // fallback for X as FaXTwitter not available
-  x: FaTwitter,
+  twitter: FaTwitter,
+  x: FaXTwitter,
   default: FaGlobe,
 }
 

@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
+import { useState, useRef, forwardRef, useImperativeHandle } from "react"
 import { motion } from "framer-motion"
 import { Save, User, Palette, Upload, X, Link, ImageIcon, Camera, Crop } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -20,7 +20,7 @@ interface ProfileEditorProps {
   onUpdate: (user: UserType | null) => void
 }
 
-export function ProfileEditor({ user, onUpdate }: ProfileEditorProps) {
+export const ProfileEditor = forwardRef<{ handleSave: () => Promise<void> }, ProfileEditorProps>(({ user, onUpdate }, ref) => {
   const [name, setName] = useState(user?.name || "")
   const [bio, setBio] = useState(user?.bio || "")
   const [profileImage, setProfileImage] = useState(user?.profile_image_url || "")
@@ -42,6 +42,8 @@ export function ProfileEditor({ user, onUpdate }: ProfileEditorProps) {
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const profileFileInputRef = useRef<HTMLInputElement>(null)
+  
+  // handleSave method will be exposed to parent component via useImperativeHandle below
 
   const handleSave = async () => {
     setIsLoading(true)
@@ -75,6 +77,11 @@ export function ProfileEditor({ user, onUpdate }: ProfileEditorProps) {
       setIsLoading(false)
     }
   }
+  
+  // Expose the handleSave method to the parent component
+  useImperativeHandle(ref, () => ({
+    handleSave
+  }))
 
   // Profile image upload handler with cropping
   const handleProfileImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -192,9 +199,9 @@ export function ProfileEditor({ user, onUpdate }: ProfileEditorProps) {
   return (
     <>
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.5 }}
       >
         <Card className="bg-white/5 backdrop-blur-sm border-white/10">
           <CardHeader>
@@ -531,4 +538,4 @@ export function ProfileEditor({ user, onUpdate }: ProfileEditorProps) {
       )}
     </>
   )
-}
+});

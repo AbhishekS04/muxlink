@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, forwardRef, useImperativeHandle } from "react"
 import { motion, Reorder } from "framer-motion"
 import { Plus, Save, Trash2, GripVertical } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -13,9 +13,11 @@ interface LinksEditorProps {
   onUpdate: (links: Link[]) => void
 }
 
-export function LinksEditor({ links, onUpdate }: LinksEditorProps) {
+export const LinksEditor = forwardRef<{ handleSave: () => Promise<void> }, LinksEditorProps>(({ links, onUpdate }, ref) => {
   const [localLinks, setLocalLinks] = useState(links)
   const [isLoading, setIsLoading] = useState(false)
+
+  // handleSave method will be exposed to parent component via useImperativeHandle below
 
   const addLink = () => {
     const newLink: Link = {
@@ -59,6 +61,11 @@ export function LinksEditor({ links, onUpdate }: LinksEditorProps) {
       setIsLoading(false)
     }
   }
+
+  // Expose the handleSave method to the parent component
+  useImperativeHandle(ref, () => ({
+    handleSave
+  }))
 
   return (
     <motion.div
@@ -136,4 +143,4 @@ export function LinksEditor({ links, onUpdate }: LinksEditorProps) {
       </Card>
     </motion.div>
   )
-}
+});

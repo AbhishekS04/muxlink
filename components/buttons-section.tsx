@@ -55,7 +55,7 @@ export function ButtonsSection({ buttons }: ButtonsSectionProps) {
         {buttons.map((button, index) => (
           <a
             key={button.id}
-            ref={(el) => (buttonsRef.current[index] = el)}
+            ref={(el) => { buttonsRef.current[index] = el; }}
             href={button.url}
             target="_blank"
             rel="noopener noreferrer"
