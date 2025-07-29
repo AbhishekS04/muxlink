@@ -3,9 +3,9 @@ import type { Metadata } from "next"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "My Links",
+  title: "Muxlink",
   description: "Personal link tree",
-    generator: 'v0.dev'
+    creator: 'Abhishek singh'
 }
 
 export default function RootLayout({
