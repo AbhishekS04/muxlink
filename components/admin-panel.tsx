@@ -20,10 +20,31 @@ export function AdminPanel({ initialUser, initialButtons, initialLinks }: AdminP
   const [user, setUser] = useState(initialUser)
   const [buttons, setButtons] = useState(initialButtons)
   const [links, setLinks] = useState(initialLinks)
+  const [refreshing, setRefreshing] = useState(false)
 
   const handleLogout = async () => {
     await fetch("/api/admin/logout", { method: "POST" })
     window.location.href = "/admin/login"
+  }
+
+  // Fetch latest data from the DB
+  const handleRefresh = async () => {
+    setRefreshing(true)
+    try {
+      const res = await fetch("/api/admin/data")
+      if (res.ok) {
+        const { user, buttons, links } = await res.json()
+        setUser(user)
+        setButtons(buttons)
+        setLinks(links)
+      } else {
+        alert("Failed to refresh data from the database.")
+      }
+    } catch (err) {
+      alert("Error refreshing data. Check your connection.")
+    } finally {
+      setRefreshing(false)
+    }
   }
 
   return (
@@ -42,15 +63,26 @@ export function AdminPanel({ initialUser, initialButtons, initialLinks }: AdminP
               </div>
               <h1 className="text-2xl xs:text-3xl font-semibold text-white tracking-tight">Admin Panel</h1>
             </div>
-            <UIButton
-              onClick={handleLogout}
-              variant="outline"
-              size="sm"
-              className="border-white/20 hover:bg-white/10 bg-transparent text-white/80 hover:text-white font-semibold"
-            >
-              <LogOut size={16} className="mr-2" />
-              Logout
-            </UIButton>
+            <div className="flex gap-2">
+              <UIButton
+                onClick={handleRefresh}
+                variant="outline"
+                size="sm"
+                className="border-white/20 hover:bg-white/10 bg-transparent text-white/80 hover:text-white font-semibold"
+                disabled={refreshing}
+              >
+                {refreshing ? "Refreshing..." : "Refresh Data"}
+              </UIButton>
+              <UIButton
+                onClick={handleLogout}
+                variant="outline"
+                size="sm"
+                className="border-white/20 hover:bg-white/10 bg-transparent text-white/80 hover:text-white font-semibold"
+              >
+                <LogOut size={16} className="mr-2" />
+                Logout
+              </UIButton>
+            </div>
           </div>
 
           <div className="space-y-8 xs:space-y-12">
