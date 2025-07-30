@@ -1,6 +1,6 @@
-# Branchline - Your Personalized Link Hub
+# Muxlink - Your Personalized Link Hub
 
-Branchline is a customizable, open-source link-in-bio solution that lets you create a personalized landing page for all your important links. It's built with modern web technologies and designed for easy self-hosting and customization.
+Muxlink is a customizable, open-source link-in-bio solution that lets you create a personalized landing page for all your important links. It's built with modern web technologies and designed for easy self-hosting and customization.
 
 ## Overview
 
@@ -28,7 +28,7 @@ This project provides a simple yet powerful platform to consolidate your online 
 
 ## Getting Started
 
-Follow these instructions to get a local copy of Branchline up and running.
+Follow these instructions to get a local copy of Muxlink up and running.
 
 ### Prerequisites
 
@@ -41,8 +41,8 @@ Follow these instructions to get a local copy of Branchline up and running.
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/branchline.git
-    cd branchline
+    git clone https://github.com/AbhishekS04/muxlink.git
+    cd muxlink
     ```
 
 2.  **Install dependencies:**
@@ -71,7 +71,7 @@ Start the development server with:
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view your Branchline page.
+Open [http://localhost:3000](http://localhost:3000) to view your Muxlink page.
 Navigate to [http://localhost:3000/admin](http://localhost:3000/admin) to access the admin panel.
 
 ## Environment Variables
@@ -81,13 +81,13 @@ Navigate to [http://localhost:3000/admin](http://localhost:3000/admin) to access
 
 ## Deployment
 
-The easiest way to deploy your Branchline instance is with [Vercel](https://vercel.com/).
+The easiest way to deploy your Muxlink instance is with [Vercel](https://vercel.com/).
 
 1.  Push your cloned repository to your own GitHub account.
 2.  Create a new project on Vercel and import your repository.
 3.  Vercel will automatically detect that this is a Next.js project.
 4.  Add your `DATABASE_URL` and `ADMIN_PASSWORD` as environment variables in the Vercel project settings.
-5.  Deploy! Your Branchline page will be live.
+5.  Deploy! Your Muxlink page will be live.
 
 ## Project Structure
 
