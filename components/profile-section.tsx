@@ -181,7 +181,7 @@ export function ProfileSection({ user }: ProfileSectionProps) {
 
       <h1
         ref={nameRef}
-        className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-semibold text-white mb-6 xs:mb-8 tracking-tight whitespace-nowrap emoji-font"
+        className="text-2xl xs:text-4xl sm:text-5xl md:text-5xl font-semibold text-white mb-6 xs:mb-8 tracking-tight whitespace-nowrap emoji-font text-center"
         style={{ whiteSpace: "nowrap" }}
       >
         {user.name}

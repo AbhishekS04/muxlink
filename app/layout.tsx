@@ -5,7 +5,7 @@ import "./globals.css"
 export const metadata: Metadata = {
   title: "Muxlink",
   description: "Personal link tree",
-    creator: 'Abhishek singh'
+  creator: 'Abhishek singh'
 }
 
 export default function RootLayout({

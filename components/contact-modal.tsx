@@ -17,7 +17,7 @@ interface ContactModalProps {
 
 export function ContactModal({ isOpen, onClose }: ContactModalProps) {
   const [senderEmail, setSenderEmail] = useState("")
-  const [message, setMessage] = useState("Hi Abhishek, I came across your profile and wanted to connect!")
+  const [message, setMessage] = useState("Hi Snehasish, I came across your profile and wanted to connect!")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [error, setError] = useState("")
@@ -95,7 +95,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
         setTimeout(() => {
           setIsSubmitted(false)
           setSenderEmail("")
-          setMessage("Hi Abhishek, I came across your profile and wanted to connect!")
+          setMessage("Hi Snehasish, I came across your profile and wanted to connect!")
           handleClose()
         }, 3000)
       } else {
@@ -153,7 +153,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
               <div>
                 <label className="block text-sm font-semibold text-white/80 mb-3">To</label>
                 <Input
-                  value="abhishek23main@gmail.com"
+                  value="snehasishmondal01@gmail.com"
                   disabled
                   className="bg-white/5 border-white/10 text-white/60 cursor-not-allowed"
                 />
@@ -214,7 +214,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                 <div className="text-green-400 text-2xl">✓</div>
               </div>
               <h3 className="text-lg font-semibold text-white mb-2">Message Sent!</h3>
-              <p className="text-white/60 text-sm">Your message has been delivered to Abhishek.</p>
+              <p className="text-white/60 text-sm">Your message has been delivered to Snehasish.</p>
               <p className="text-white/40 text-xs mt-2">You'll receive a reply at {senderEmail}</p>
             </div>
           )}
